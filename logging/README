@@ -1,0 +1,27 @@
+This module is meant to be a simple logging mechanism for programs to utilize.
+
+First compile library:
+$ gcc -fPIC -c logging.c
+
+Then compile the example:
+$ gcc -o logging_example logging_example.c logging.o
+
+After running the example, the result will be a new log file "log_test.log" with the following lines:
+Sun Jun 14 20:21:48 2020 Prints an INFO message
+Sun Jun 14 20:21:48 2020 Prints an ERROR message
+Sun Jun 14 20:21:48 2020 Prints an DEBUG message
+Sun Jun 14 20:21:48 2020 Prints an TRACE message
+
+And the following will print to screen:
+Sun Jun 14 20:21:48 2020 Prints an INFO message to stdout
+Sun Jun 14 20:21:48 2020 Prints an INFO message to stderr
+Sun Jun 14 20:21:48 2020 Prints an ERROR message to stdout
+Sun Jun 14 20:21:48 2020 Prints an ERROR message to stderr
+Sun Jun 14 20:21:48 2020 Prints an DEBUG message to stdout
+Sun Jun 14 20:21:48 2020 Prints an DEBUG message to stderr
+Sun Jun 14 20:21:48 2020 Prints an TRACE message to stdout
+Sun Jun 14 20:21:48 2020 Prints an TRACE message to stderr
+
+
+You can alternatively do this without compiling the library and simply including logging.c in the compile instead of logging.o
+See example for use.
