@@ -1,0 +1,22 @@
+This module is meant to provide basic functions for network management.
+NB: Currently only for IPv4
+
+First compile library:
+$ gcc -fPIC -c inet.c
+
+Then compile the example:
+$ gcc -o inet_example inet_example.c inet.o
+
+After running the example, similar to the following will print to screen:
+Converted to sockaddr_in
+Converted IP 192.168.2.1
+Converted Port 6048
+DNS server 127.0.0.53
+Interface lo
+        IP 127.0.0.1
+Interface ens160
+        IP 192.168.2.207
+
+
+You can alternatively do this without compiling the library and simply including inet.c in the compile instead of inet.o
+See example for use.
