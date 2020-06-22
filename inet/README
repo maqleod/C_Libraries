@@ -1,5 +1,6 @@
 This module is meant to provide basic functions for network management.
 NB: Currently only for IPv4
+NB: Currently in heavy development, many things will likely still change with overall architecture
 
 First compile library:
 $ gcc -fPIC -c inet.c
@@ -7,7 +8,11 @@ $ gcc -fPIC -c inet.c
 Then compile the example:
 $ gcc -o inet_example inet_example.c inet.o
 
+Eventually this example will look more like an actual program than just random sprawling lines of information.
+
 After running the example, similar to the following will print to screen:
+arp file has 16 entries
+route file has 3 entries
 Converted to sockaddr_in
 Converted IP 192.168.2.1
 Converted Port 6048
@@ -31,7 +36,10 @@ ARP entry 192.168.2.1      0x1         0x2         c0:56:27:e5:f2:8a     *      
 ARP entry 192.168.2.31     0x1         0x2         40:23:43:23:c5:10     *        ens160
 ARP entry 192.168.2.21     0x1         0x2         9c:da:3e:d4:af:4e     *        ens160
 ARP entry 192.168.100.10   0x1         0x2         c0:56:27:e5:f2:8a     *        ens160
-ARP entry Interface lo UP
+Route entry ens160      00000000        0102A8C0        0003    0       0       100     00000000        0       0       0                                                    
+Route entry ens160      0000FEA9        00000000        0001    0       0       1000    0000FFFF        0       0       0                                                    
+Route entry ens160      0002A8C0        00000000        0001    0       0       100     00FFFFFF        0       0       0                                                    
+Interface lo UP
         flags 73
         mac 00:00:00:00:00:00
         IP 127.0.0.1
@@ -41,6 +49,7 @@ Interface ens160 UP
         mac 00:0c:29:98:d1:81
         IP 192.168.2.207
         mtu 1500
+
 
 You can alternatively do this without compiling the library and simply including inet.c in the compile instead of inet.o
 See example for use.

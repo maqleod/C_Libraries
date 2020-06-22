@@ -4,6 +4,7 @@ Written by Jared Epstein
 */
 
 #include <unistd.h>
+#include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <resolv.h>
@@ -22,9 +23,7 @@ Written by Jared Epstein
 //add error handling
 //isReachable - check if a specific IP responds to ping
 //get iface routes - list routes specific to a given iface
-//get iface arp entries - list arp specific to given iface
 //get gateways - list all gateways
-//get routes - list all routes
 
 
 /*
@@ -32,10 +31,11 @@ UTILITY
 These functions are used by other functions, but can be used outside the library as well
 */
 
-//get total number of arp entries
-int arp_count()
+//get total number of entries
+//NB: assumes a header in the provided file
+int count_lines(char* file)
 {
-    FILE *fp = fopen(ARPFILE,"r");
+    FILE *fp = fopen(file,"r");
     int ch = 0;
     int lines = 0;
 
@@ -47,7 +47,7 @@ int arp_count()
         }
     }
     fclose(fp);
-    return lines - 1;
+    return lines - 2;
 }
 
 //get total number of configured dns servers
@@ -112,8 +112,8 @@ bool isIfaceUpandLinked(char *iface)
 
 bool hasArpEntry(char *ipaddr)
 {
-    int arpcount = arp_count(), a;
-    char entries[arpcount][ARP_BUFFER_LEN];
+    int arpcount = count_lines(ARPFILE), a;
+    char entries[arpcount][BUFFER_LEN];
     bool found = false;
     getArpTable(entries);
 
@@ -162,25 +162,88 @@ uint16_t SockPorttoStr(struct sockaddr_in sa)
     return port;
 }
 
+//converts 8 digit hex IP to sockaddr_in struct with IP
+struct sockaddr_in HexIPToSockIP(char* hexip, char* ipaddr)
+{
+    struct sockaddr_in sa;
+    int num = (int)strtol(hexip, NULL, 16);
+    sa.sin_addr.s_addr = htonl(num);
+    return sa;
+}
+
+//converts numeric representation of route flags into human readable string
+void RTFlagsToStr(char* inflags, char* outflags)
+{
+    //need to look up how these flags are parsed
+}
+
 
 /*
 RETRIEVAL
 These functions get information about interfaces or net config
 */
-
-//reads arp table from /proc/net/arp
+//reads route table from /proc/net/route
 //NB: because this is pulled from a file, each line already contains a newline
-void getArpTable(char entries[arp_count()][ARP_BUFFER_LEN])
+void getRouteTable(char entries[count_lines(ROUTEFILE)][BUFFER_LEN]) //this could use some special handling to remove extra newlines
 {
-    FILE *fp = fopen(ARPFILE, "r");
-    char str[ARP_BUFFER_LEN];
+    FILE *fp = fopen(ROUTEFILE, "r");
+    char str[BUFFER_LEN];
     int i = 0;
 
     /* Ignore the first line, which contains the header */
-    char header[ARP_BUFFER_LEN];
+    char header[BUFFER_LEN];
     fgets(header, sizeof(header), fp);
 
-    while (fgets(str, ARP_BUFFER_LEN, fp)) {
+    while (fgets(str, BUFFER_LEN, fp)) {
+        strcpy(entries[i], str);
+        i++;
+    }
+    fclose(fp);
+}
+
+//gets the route destination from a route entry
+void getDSTFromRoute(char* entry, char* dst)
+{
+    sscanf(entry, ROUTE_DST_LINE_FORMAT, dst);
+}
+
+//gets the interface from a route entry
+void getIFFromRoute(char* entry, char* ifname)
+{
+    sscanf(entry, ROUTE_IF_LINE_FORMAT, ifname);
+}
+
+//gets the route gateway from a route entry
+void getGWFromRoute(char* entry, char* gw)
+{
+    sscanf(entry, ROUTE_GW_LINE_FORMAT, gw);
+}
+
+//gets the netmask from a route entry
+void getNMFromRoute(char* entry, char* netmask)
+{
+    sscanf(entry, ROUTE_NM_LINE_FORMAT, netmask);
+}
+
+//gets the route flags from a route entry
+void getFLFromRoute(char* entry, char* flags)
+{
+    sscanf(entry, ROUTE_FL_LINE_FORMAT, flags);
+}
+
+//reads arp table from /proc/net/arp
+//NB: because this is pulled from a file, each line already contains a newline
+void getArpTable(char entries[count_lines(ARPFILE)][BUFFER_LEN])
+{
+    FILE *fp = fopen(ARPFILE, "r");
+    char str[BUFFER_LEN];
+    int i = 0;
+
+    /* Ignore the first line, which contains the header */
+    char header[BUFFER_LEN];
+    fgets(header, sizeof(header), fp);
+
+    while (fgets(str, BUFFER_LEN, fp)) {
         strcpy(entries[i], str);
         i++;
     }
@@ -190,8 +253,8 @@ void getArpTable(char entries[arp_count()][ARP_BUFFER_LEN])
 //gets an ARP entry from host IP
 void getArpFromHost(char* ipaddr, char* entry)
 {
-    int arpcount = arp_count(), a;
-    char entries[arpcount][ARP_BUFFER_LEN];
+    int arpcount = count_lines(ARPFILE), a;
+    char entries[arpcount][BUFFER_LEN];
     getArpTable(entries);
 
     for (a = 0; a < arpcount; a++) {
@@ -202,10 +265,10 @@ void getArpFromHost(char* ipaddr, char* entry)
 }
 
 //gets array of ARP entries attached to a specified interface
-void getArpFromIfname(char* ifname, char entries[arp_count()][ARP_BUFFER_LEN]) //arp_count() won't work quite right here because the number may get reduced
+void getArpFromIfname(char* ifname, char entries[count_lines(ARPFILE)][BUFFER_LEN]) //count_lines(ARPFILE) won't work quite right here because the number may get reduced
 {
-    int arpcount = arp_count(), a;
-    char table_entries[arpcount][ARP_BUFFER_LEN];
+    int arpcount = count_lines(ARPFILE), a;
+    char table_entries[arpcount][BUFFER_LEN];
     getArpTable(table_entries);
 
     for (a = 0; a < arpcount; a++) {

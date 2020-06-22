@@ -13,17 +13,21 @@ int main(int argc, char* argv[])
     short flags;
     struct sockaddr_in sa, sa_if;
     bool entry;
-    char hwaddr[ARP_BUFFER_LEN];
+    char hwaddr[BUFFER_LEN];
     uint16_t port = 6048;
-    int arpcount = arp_count();
+    int routecount = count_lines(ROUTEFILE);
+    int arpcount = count_lines(ARPFILE);
     int interfacecount = interface_count();
     int dnsservercount = dns_server_count();
     char dns_servers[dnsservercount][INET_ADDRSTRLEN];
     char interfaces[interfacecount][IFNAMSIZ];
-    char entries[arpcount][ARP_BUFFER_LEN];
-    char arp_entry[ARP_BUFFER_LEN];
+    char entries[arpcount][BUFFER_LEN];
+    char routes[routecount][BUFFER_LEN];
+    char arp_entry[BUFFER_LEN];
     int a;
     int mtu;
+    printf("arp file has %d entries\n", arpcount);
+    printf("route file has %d entries\n", routecount);
     
     sa = sockaddrCreate(ip, port);
     printf("Converted to sockaddr_in\n");
@@ -48,6 +52,10 @@ int main(int argc, char* argv[])
     getArpTable(entries);
     for (a = 0; a < arpcount; a++) {
         printf("ARP entry %s", entries[a]);
+    }
+    getRouteTable(routes);
+    for (a = 0; a < routecount; a++) {
+        printf("Route entry %s", routes[a]);
     }
     get_interfaces(interfaces);
     for (a = 0; a < interfacecount; a++) {
