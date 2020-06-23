@@ -125,6 +125,29 @@ bool hasArpEntry(char *ipaddr)
     return found;
 }
 
+//checks if an IP is in a subnet (IP/prefix)
+bool isIPinSubnet(char *addr, char *net)
+{
+    struct in_addr ip_addr;
+    if (!inet_aton(addr, &ip_addr)) return false;
+
+    char network[32];
+    strncpy(network, net, strlen(net));
+
+    char* slash = strstr(network, "/");
+    if (!slash) return false;
+    int mask_len = atoi(slash + 1);
+
+    *slash = '\0';
+    struct in_addr net_addr;
+    if (!inet_aton(network, &net_addr)) return false;
+
+    unsigned ip_bits = ip_addr.s_addr;
+    unsigned net_bits = net_addr.s_addr;
+    unsigned netmask = net_bits & ((1 << mask_len) - 1); 
+    return (ip_bits & netmask) == net_bits;
+}
+
 
 /*
 CONVERSIONS
@@ -172,9 +195,41 @@ struct sockaddr_in HexIPToSockIP(char* hexip, char* ipaddr)
 }
 
 //converts numeric representation of route flags into human readable string
+//NB: I should probably add more, but these are the most commonly seen
 void RTFlagsToStr(char* inflags, char* outflags)
 {
-    //need to look up how these flags are parsed
+    int iflags = (int)strtol(inflags, NULL, 16);
+    outflags[0] = '\0';
+    if (iflags & RTF_UP)
+        strcat(outflags, "U");
+    if (iflags & RTF_GATEWAY)
+        strcat(outflags, "G");
+    if (iflags & RTF_HOST)
+        strcat(outflags, "H");
+}
+
+//converts netmask to prefix
+int NMtoPrefix(char *netmask)
+{
+    int a;
+    inet_pton(AF_INET, netmask, &a);
+    int prefix = 0;
+    
+    while (a > 0) {
+        a = a >> 1;
+        prefix++;
+    }
+    return prefix;
+}
+
+//converts IP and netmask into a network string (x.x.x.x/y)
+void IPNMtoNetwork(char *ipaddr, char *netmask, char *network)
+{
+    int num = NMtoPrefix(netmask);
+    char prefix[2];
+    sprintf(prefix, "%d", num);
+    strcpy(network, ipaddr);
+    strcat(network, prefix);
 }
 
 

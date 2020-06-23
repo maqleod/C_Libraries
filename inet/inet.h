@@ -65,6 +65,8 @@ bool isIfaceUpandLinked(char *iface);
 
 bool hasArpEntry(char *ipaddr);
 
+bool isIPinSubnet(char *addr, char *net);
+
 /*
 CONVERSIONS
 These functions convert between different data types
@@ -81,6 +83,10 @@ uint16_t SockPorttoStr(struct sockaddr_in sa);
 struct sockaddr_in HexIPToSockIP(char* hexip, char* ipaddr);
 
 void RTFlagsToStr(char* inflags, char* outflags);
+
+int NMtoPrefix(char *netmask);
+
+void IPNMtoNetwork(char *ipaddr, char *netmask, char *network);
 
 /*
 RETRIEVAL

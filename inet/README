@@ -1,6 +1,6 @@
 This module is meant to provide basic functions for network management.
 NB: Currently only for IPv4
-NB: Currently in heavy development, many things will likely still change with overall architecture
+NB: Currently in heavy development, many things will likely still change with overall architecture. Also, very little is well-tested.
 
 First compile library:
 $ gcc -fPIC -c inet.c
